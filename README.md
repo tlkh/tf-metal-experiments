@@ -21,7 +21,9 @@ If you want to play around with Transformer models (with TF Metal backend of cou
 
 ## Experiments and Benchmarks
 
-After some trial and error, some initial benchmarks for what should be the approx best capability of the M1 Max. For all the cases here, increasing batch size does not seem to increase the throughput. Power draw also doesn't seem to be able to exceed 40W.
+After some trial and error, some initial benchmarks for what should be the approx best capability of the M1 Max. For all the cases here, increasing batch size does not seem to increase the throughput.
+
+Power draw also doesn't seem to be able to exceed 40W. Power draw from the GPU (averaged over 1 second) can be measured with `sudo powermetrics --samplers gpu_power -i1000 -n1`.
 
 | Model       | GPU        | BatchSize | Throughput  | Power | Memory |
 | ----------- | ---------- | --------- | ----------- | ----- | ------ |
