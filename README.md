@@ -33,3 +33,22 @@ Power draw also doesn't seem to be able to exceed 40W. Power draw from the GPU (
 | BERTLarge   | M1 Max 32c | 32        | 18 seq/sec  | 36W   | 14 GB  |
 
 The benchmark scripts used are included in this repo.
+
+**Reference Benchmarks from RTX 3090**
+
+| Model       | GPU        | BatchSize | Throughput  | Power |
+| ----------- | ---------- | --------- | ----------- | ----- |
+| ResNet50    | 3090       | 64        | 957 img/sec | 300W  |
+| MobileNetV2 | 3090       | 128       | 1927 img/sec| 310W  |
+| DistilBERT  | 3090       | 64        | 1040 seq/sec| 310W  |
+| BERTLarge   | 3090       | 32        | 164 seq/sec | 320W  |
+
+For 3090, same script is used, but additional optimization that leverage hardware (Tensor Core) and software (XLA compiler) not present/working on M1 is added. This corresponds to the following code segment added:
+
+```python
+from tensorflow.keras import mixed_precision
+tf.config.optimizer.set_jit(True)
+policy = mixed_precision.Policy('mixed_float16')
+mixed_precision.set_global_policy(policy)
+physical_devices = tf.config.list_physical_devices('GPU')
+```
