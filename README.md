@@ -54,3 +54,13 @@ physical_devices = tf.config.list_physical_devices('GPU')
 ```
 
 Also note that the 3090 is likely to perform better at larger batch sizes. 
+
+## Measuring Achievable TFLOPS
+
+We can use TF to write a matrix multiplication benchmark to try and estimate what is the max compute performance we can get out of a M1 Max. It seems we can get around ~8 TFLOPS for large enough problem (GEMM) sizes.
+
+![](gpu_tflops_plot.jpg)
+
+The plot can be generated using `tflops_sweep.py`. 
+
+Note that FP64 and FP16 performance appears to be non-existent. (the code automatically runs on CPU if FP64 or FP16 is specified as data type)
