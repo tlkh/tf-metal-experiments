@@ -21,7 +21,13 @@ If you want to play around with Transformer models (with TF Metal backend of cou
 
 ## Experiments and Benchmarks
 
-ResNet50
-MobileNetV2
-DistilBERT
-BERTLarge
+After some trial and error, some initial benchmarks for what should be the approx best capability of the M1 Max. For all the cases here, increasing batch size does not seem to increase the throughput. Power draw also doesn't seem to be able to exceed 40W.
+
+| Model       | GPU        | BatchSize | Throughput  | Power | Memory |
+| ----------- | ---------- | --------- | ----------- | ----- | ------ |
+| ResNet50    | M1 Max 32c | 64        | 135 img/sec | 40W   | 13 GB  |
+| MobileNetV2 | M1 Max 32c | 128       | 352 img/sec | 37W   | 15 GB  |
+| DistilBERT  | M1 Max 32c | 64        | 120 seq/sec | 35W   | 9 GB   |
+| BERTLarge   | M1 Max 32c | 32        | 18 seq/sec  | 36W   | 14 GB  |
+
+The benchmark scripts used are included in this repo.
