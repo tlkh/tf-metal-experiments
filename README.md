@@ -52,3 +52,5 @@ policy = mixed_precision.Policy('mixed_float16')
 mixed_precision.set_global_policy(policy)
 physical_devices = tf.config.list_physical_devices('GPU')
 ```
+
+Also note that the 3090 is likely to perform better at larger batch sizes. 
