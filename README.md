@@ -9,7 +9,7 @@ This is tested on M1 series Apple Silicon SOC only.
 ### TensorFlow 2.x
 
 1. Follow the official instructions from Apple [here](https://developer.apple.com/metal/tensorflow-plugin/)
-2. Test that your Metal GPU is working by running `tf.config.list_physical_devices("GPU)`, you should see 1 GPU present (it is not named). Later when you actually use the GPU, there will be a more informative printout that says `Metal device set to: Apple M1 Max` or similar.
+2. Test that your Metal GPU is working by running `tf.config.list_physical_devices("GPU")`, you should see 1 GPU present (it is not named). Later when you actually use the GPU, there will be a more informative printout that says `Metal device set to: Apple M1 Max` or similar.
 3. Now you should be ready to run any TF code that doesn't require external libraries.
 
 ### HuggingFace Transformers library
