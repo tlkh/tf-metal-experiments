@@ -5,7 +5,7 @@ from transformers import TFAutoModelForSequenceClassification
 print(tf.config.list_physical_devices("GPU"))
 
 seq_len = 128
-batch_size = 32
+batch_size = 16
 dataset_size = batch_size*10
 classes = 8
 example_x = tf.random.uniform(

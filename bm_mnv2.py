@@ -5,7 +5,7 @@ print(tf.config.list_physical_devices("GPU"))
 
 img_dim = 224
 batch_size = 128
-dataset_size = batch_size*30
+dataset_size = batch_size*10
 classes = 8
 example_x = tf.random.uniform(
     (img_dim,img_dim,3), minval=0, maxval=1, dtype=tf.dtypes.float32,

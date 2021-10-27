@@ -21,16 +21,23 @@ If you want to play around with Transformer models (with TF Metal backend of cou
 
 ## Experiments and Benchmarks
 
-After some trial and error, some initial benchmarks for what should be the approx best capability of the M1 Max. For all the cases here, increasing batch size does not seem to increase the throughput.
+After some trial and error, some initial benchmarks for what should be the approx best capability of the M1 Max.
 
-Power draw also doesn't seem to be able to exceed 40W. Power draw from the GPU (averaged over 1 second) can be measured with `sudo powermetrics --samplers gpu_power -i1000 -n1`.
+* For all the cases here, increasing batch size does not seem to increase the throughput.
+* High Power Mode enabled + plugged into charger (this does not seem to affect the benchmarks anyway)
 
-| Model       | GPU        | BatchSize | Throughput  | Power | Memory |
+Power draw also doesn't seem to be able to go much higher than ~40W:
+
+* Power draw from the GPU (averaged over 1 second) can be measured with `sudo powermetrics --samplers gpu_power -i1000 -n1`.
+* I decided to report peak power as observed via `asitop` (see: [tlkh/asitop](https://github.com/tlkh/asitop))
+
+
+| Model       | GPU        | BatchSize | Throughput  | Peak Power | Memory |
 | ----------- | ---------- | --------- | ----------- | ----- | ------ |
-| ResNet50    | M1 Max 32c | 64        | 135 img/sec | 40W   | 13 GB  |
-| MobileNetV2 | M1 Max 32c | 128       | 352 img/sec | 37W   | 15 GB  |
+| ResNet50    | M1 Max 32c | 128       | 140 img/sec | 42W   | 21 GB  |
+| MobileNetV2 | M1 Max 32c | 128       | 352 img/sec | 37W   | 13 GB  |
 | DistilBERT  | M1 Max 32c | 64        | 120 seq/sec | 35W   | 9 GB   |
-| BERTLarge   | M1 Max 32c | 32        | 18 seq/sec  | 36W   | 14 GB  |
+| BERTLarge   | M1 Max 32c | 16        | 19 seq/sec  | 36W   | 14 GB  |
 
 The benchmark scripts used are included in this repo.
 
@@ -43,13 +50,18 @@ The benchmark scripts used are included in this repo.
 | DistilBERT  | 3090       | 64        | 1040 seq/sec| 310W  |
 | BERTLarge   | 3090       | 32        | 164 seq/sec | 320W  |
 
-For 3090, same script is used, but additional optimization that leverage hardware (Tensor Core) and software (XLA compiler) not present/working on M1 is added. This corresponds to the following code segment added:
+For 3090, same script is used, but additional optimization that leverage hardware (Tensor Core) and software (XLA compiler) not present/working on M1 is added. This corresponds to the following code segment added. Also increase the length of an epoch, as sometimes 3090 is too fast and results in poorer measurement due to overhead of start/end the training which finishes in seconds.
+
+Note: 3090 ResNet and BERTLarge batch size was run at older config, M1 Max batch size was adjusted afterwards while tuning M1 Max performance.
 
 ```python
 from tensorflow.keras import mixed_precision
 tf.config.optimizer.set_jit(True)
 policy = mixed_precision.Policy('mixed_float16')
 mixed_precision.set_global_policy(policy)
+
+# also increase the following
+dataset_size = batch_size*100 # (up from: batch_size*10)
 ```
 
 Also note that the 3090 is likely to perform better at larger batch sizes. 

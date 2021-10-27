@@ -6,7 +6,7 @@ print(tf.config.list_physical_devices("GPU"))
 
 seq_len = 128
 batch_size = 64
-dataset_size = batch_size*30
+dataset_size = batch_size*10
 classes = 8
 example_x = tf.random.uniform(
     (seq_len,), minval=0, maxval=1000, dtype=tf.dtypes.int64,
