@@ -17,7 +17,7 @@ This is tested on M1 series Apple Silicon SOC only.
 If you want to play around with Transformer models (with TF Metal backend of course), you will need to install the HuggingFace Transformers library.
 
 1. Install the `regex` library (I don't know why it has to be like this, but yeah): `python3 -m pip install --upgrade regex --no-use-pep517`. You might need do `xcode-select --install` if the above command doesn't work.
-2. `pip install transfomers ipywidgets`
+2. `pip install transformers ipywidgets`
 
 ## Experiments and Benchmarks
 
