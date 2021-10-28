@@ -41,6 +41,13 @@ Power draw also doesn't seem to be able to go much higher than ~40W:
 
 The benchmark scripts used are included in this repo.
 
+```shell
+python3 bm_rn50.py
+python3 bm_mnv2.py
+python3 bm_distilbert.py
+python3 bm_bertlarge.py
+```
+
 **Reference Benchmarks from RTX 3090**
 
 | Model       | GPU        | BatchSize | Throughput  | Power |
@@ -50,21 +57,20 @@ The benchmark scripts used are included in this repo.
 | DistilBERT  | 3090       | 64        | 1040 seq/sec| 310W  |
 | BERTLarge   | 3090       | 32        | 164 seq/sec | 320W  |
 
-For 3090, same script is used, but additional optimization that leverage hardware (Tensor Core) and software (XLA compiler) not present/working on M1 is added. This corresponds to the following code segment added. Also increase the length of an epoch, as sometimes 3090 is too fast and results in poorer measurement due to overhead of start/end the training which finishes in seconds.
+For 3090, same script is used, but additional optimization that leverage hardware (Tensor Core) and software (XLA compiler) not present/working on M1 is added. Also increase the length of an epoch, as sometimes 3090 is too fast and results in poorer measurement due to overhead of start/end the training which finishes in seconds.
 
-Note: 3090 ResNet and BERTLarge batch size was run at older config, M1 Max batch size was adjusted afterwards while tuning M1 Max performance.
+**Note: 3090 ResNet and BERTLarge batch size was run at older config, M1 Max batch size was adjusted afterwards while tuning M1 Max performance. Also note that the 3090 is likely to perform better at larger batch sizes. **
 
-```python
-from tensorflow.keras import mixed_precision
-tf.config.optimizer.set_jit(True)
-policy = mixed_precision.Policy('mixed_float16')
-mixed_precision.set_global_policy(policy)
+```shell
+# config for NVIDIA Tensor Core GPU
+# run with more steps, XLA and FP16 (AMP)
+python3 bm_rn50.py --xla --fp16 --steps 100
+python3 bm_mnv2.py --xla --fp16 --steps 100
+python3 bm_distilbert.py --xla --fp16 --steps 100
+python3 bm_bertlarge.py --xla --fp16--steps 30
 
-# also increase the following
-dataset_size = batch_size*100 # (up from: batch_size*10)
+# If no Tensor Core, remove --fp16 flag
 ```
-
-Also note that the 3090 is likely to perform better at larger batch sizes. 
 
 ## Measuring Achievable TFLOPS
 

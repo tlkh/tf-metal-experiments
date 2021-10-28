@@ -1,11 +1,27 @@
+import argparse
 import time
 import tensorflow as tf
+from tensorflow.keras import mixed_precision
 
-print(tf.config.list_physical_devices("GPU"))
+parser = argparse.ArgumentParser()
+parser.add_argument("--bs", type=int, default=128)
+parser.add_argument("--steps", type=int, default=10)
+parser.add_argument('--xla', action='store_true')
+parser.add_argument('--fp16', action='store_true')
+args = parser.parse_args()
+
+tf.config.optimizer.set_jit(args.xla)
+if args.fp16:
+    policy = mixed_precision.Policy('mixed_float16')
+    mixed_precision.set_global_policy(policy)
+
+print("\nConfig:", vars(args))
+print("GPU:", tf.config.list_physical_devices("GPU"))
+print("")
 
 img_dim = 224
-batch_size = 128
-dataset_size = batch_size*10
+batch_size = args.bs
+dataset_size = batch_size*args.steps
 classes = 8
 example_x = tf.random.uniform(
     (img_dim,img_dim,3), minval=0, maxval=1, dtype=tf.dtypes.float32,
