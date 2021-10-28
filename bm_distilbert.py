@@ -6,7 +6,7 @@ from transformers import TFAutoModelForSequenceClassification
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--bs", type=int, default=64)
-parser.add_argument("--steps", type=int, default=10)
+parser.add_argument("--steps", type=int, default=30)
 parser.add_argument('--xla', action='store_true')
 parser.add_argument('--fp16', action='store_true')
 args = parser.parse_args()
