@@ -52,22 +52,28 @@ python3 bm_bertlarge.py
 
 | Model       | GPU        | BatchSize | Throughput  | Power |
 | ----------- | ---------- | --------- | ----------- | ----- |
-| ResNet50    | 3090       | 64        | 957 img/sec | 300W  |
-| MobileNetV2 | 3090       | 128       | 1927 img/sec| 310W  |
-| DistilBERT  | 3090       | 64        | 1040 seq/sec| 310W  |
-| BERTLarge   | 3090       | 32        | 164 seq/sec | 320W  |
+| Same Batch Size as M1 | | | | |
+| ResNet50    | 3090       | 128       | 1100 img/sec| 360W  |
+| MobileNetV2 | 3090       | 128       | 2001 img/sec| 340W  |
+| DistilBERT  | 3090       | 64        | 1065 seq/sec| 360W  |
+| BERTLarge   | 3090       | 16        | 131 seq/sec | 335W  |
+| Larger Batch Size | | | | |
+| ResNet50    | 3090       | 256       | 1185 img/sec| 370W  |
+| MobileNetV2 | 3090       | 256       | 2197 img/sec| 350W  |
+| DistilBERT  | 3090       | 256       | 1340 seq/sec| 380W  |
+| BERTLarge   | 3090       | 64        | 193 seq/sec | 365W  |
 
-For 3090, same script is used, but additional optimization that leverage hardware (Tensor Core) and software (XLA compiler) not present/working on M1 is added. Also increase the length of an epoch, as sometimes 3090 is too fast and results in poorer measurement due to overhead of start/end the training which finishes in seconds.
+For 3090, same script is used, but additional optimization that leverage hardware (Tensor Core) and software (XLA compiler) not present/working on M1 is added. Also increase the length of an epoch, as sometimes 3090 is too fast and results in poorer measurement due to overhead of starting/ending the training which finishes in seconds.
 
-**Note: 3090 ResNet and BERTLarge batch size was run at older config, M1 Max batch size was adjusted afterwards while tuning M1 Max performance. Also note that the 3090 is likely to perform better at larger batch sizes. **
+Note: 3090 running at 400W power limit. CPU is 5600X.
 
 ```shell
 # config for NVIDIA Tensor Core GPU
-# run with more steps, XLA and FP16 (AMP)
+# run with more steps, XLA and FP16 (enable tensor core aka mixed precision)
 python3 bm_rn50.py --xla --fp16 --steps 100
 python3 bm_mnv2.py --xla --fp16 --steps 100
 python3 bm_distilbert.py --xla --fp16 --steps 100
-python3 bm_bertlarge.py --xla --fp16--steps 30
+python3 bm_bertlarge.py --xla --fp16 --steps 30
 
 # If no Tensor Core, remove --fp16 flag
 ```
