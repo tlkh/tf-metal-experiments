@@ -1,9 +1,7 @@
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("--iterations", default=100, type=int,
+parser.add_argument("--iterations", default=1000, type=int,
                     help="Number of iterations to run within each benchmark")
-parser.add_argument("--time", default=10, type=int,
-                    help="Min time to continuously run the stress test")
 args = parser.parse_args()
 
 import os
@@ -20,22 +18,24 @@ def benchmark_matmul(M, dtype=tf.float32, iterations=100):
         A = tf.random.normal([M, M], mean=0, stddev=1, dtype=dtype)
         B = tf.random.normal([M, M], mean=0, stddev=1, dtype=dtype)
         C = do_op(A, B)
+        slots = [A, B]
+        C = do_op(slots[0], slots[1])
     C.numpy()
     time.sleep(1)
     # measure overhead
     st = time.time()
-    with tf.device("/GPU:0"):
-        for _ in range(1):
-            C = do_op(A, B)
+    for _ in range(1):
+        with tf.device("/GPU:0"):
+            C = do_op(slots[0], slots[1])
     C.numpy()
     et = time.time()
     overhead = et - st
     time.sleep(1)
     # run benchmark
     st = time.time()
-    with tf.device("/GPU:0"):
-        for _ in range(iterations+1):
-            C = do_op(A, B)
+    for _ in range(iterations+1):
+        with tf.device("/GPU:0"):
+            C = do_op(slots[0], slots[1])
     C.numpy()
     et = time.time()
     duration = (et-st) - overhead
@@ -44,7 +44,7 @@ def benchmark_matmul(M, dtype=tf.float32, iterations=100):
 fp16_matmul, fp32_matmul, fp64_matmul = [], [], []
 fp16_tflops, fp32_tflops, fp64_tflops = [], [], []
 
-M_list = [32, 64, 128, 256, 512, 1024, 2048, 4096, 6144, 8192][::-1]
+M_list = [1024*8] * 10
 
 print("\nStarting burn...\n")
 
@@ -57,20 +57,17 @@ for M in tqdm(M_list):
     fp32_matmul.append(ret)
     fp32_tflops.append(tflops)
     print(tflops)
-    time.sleep(1)
+    #time.sleep(1)
     
 burn_end = time.time()
     
 print("\nFinished in", int(burn_end-burn_start), "seconds\n")
-
-max_tflop = max(fp32_tflops)
-max_tflop_M = M_list[fp32_tflops.index(max_tflop)]
     
 title = "Max TFLOPS achieved"
 print("")
 print(title)
 print("="*len(title))
-print("* FP32:", round(max_tflop, 1), "TFLOPS")
+print("* FP32:", int(max(fp32_tflops)), "TFLOPS")
 print("")
 
 from matplotlib import pyplot as plt
@@ -78,7 +75,7 @@ plt.clf()
 plt.figure(figsize=(10,6), dpi=100)
 plt.title(title)
 plt.plot(M_list, fp32_tflops, label="FP32", color="b")
-plt.axvline(max_tflop_M, color="k", linestyle="--", linewidth=1, label="M="+str(max_tflop_M))
+plt.axvline(4096, color="k", linestyle="--", linewidth=1, label="M=4096")
 plt.xlabel("Matrix size M*M")
 plt.ylabel("Achieved TFLOPS")
 plt.legend()

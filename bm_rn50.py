@@ -49,7 +49,7 @@ model.compile(optimizer=tf.keras.optimizers.SGD(learning_rate=base_learning_rate
 
 _ = model.fit(x=dataset_x, y=dataset_y, batch_size=batch_size, epochs=1)
 
-benchmark_epochs = 2
+benchmark_epochs = 3
 st = time.time()
 _ = model.fit(x=dataset_x, y=dataset_y, batch_size=batch_size, epochs=benchmark_epochs)
 et = time.time()
