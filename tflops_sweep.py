@@ -11,6 +11,7 @@ import time
 from tqdm import tqdm
 import tensorflow as tf
 
+@tf.function()
 def do_op(a, b):
     return tf.linalg.matmul(a, b)
 
@@ -22,15 +23,6 @@ def benchmark_matmul(M, dtype=tf.float32, iterations=100):
         C = do_op(A, B)
     C.numpy()
     time.sleep(1)
-    # measure overhead
-    st = time.time()
-    with tf.device("/GPU:0"):
-        for _ in range(1):
-            C = do_op(A, B)
-    C.numpy()
-    et = time.time()
-    overhead = et - st
-    time.sleep(1)
     # run benchmark
     st = time.time()
     with tf.device("/GPU:0"):
@@ -38,13 +30,13 @@ def benchmark_matmul(M, dtype=tf.float32, iterations=100):
             C = do_op(A, B)
     C.numpy()
     et = time.time()
-    duration = (et-st) - overhead
+    duration = (et-st)
     return iterations/duration
 
 fp16_matmul, fp32_matmul, fp64_matmul = [], [], []
 fp16_tflops, fp32_tflops, fp64_tflops = [], [], []
 
-M_list = [32, 64, 128, 256, 512, 1024, 2048, 4096, 6144, 8192][::-1]
+M_list = [32, 64, 128, 256, 512, 1024, 1536, 2048, 4096, 6144, 8192][::-1]
 
 print("\nStarting burn...\n")
 
