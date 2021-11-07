@@ -3,8 +3,9 @@ import tensorflow as tf
 
 #tf.config.set_visible_devices([], 'GPU')
 
-# set this to the number of execution units for optimal measurement
-D = 4096
+# set this to at least the number of execution units for optimal measurement
+# always set it as a integer multiple to avoid tile/wave quantization effect
+D = 8192
 
 op_type = "fma"
 
