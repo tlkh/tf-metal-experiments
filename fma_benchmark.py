@@ -1,19 +1,45 @@
 import time
 import tensorflow as tf
-import math
 
-tf.config.set_visible_devices([], 'GPU')
+#tf.config.set_visible_devices([], 'GPU')
 
-D = 1024*20
+# set this to the number of execution units for optimal measurement
+D = 4096
+
+op_type = "fma"
 
 input_shape = (D,D,)
+num_floats = D*D
 
-flops = 2*D*D
-mem = 4*D*D*4*2/(1e9)
+op_flops = {
+    "add": num_floats,
+    "mult": num_floats,
+    "fma": 2*num_floats
+}
+
+flops = op_flops[op_type]
+
+# note: 32b (bit) = 4B (byte)
+# memory estimation:
+#  - add/mult
+# 4B + 4B -> 4B 
+# total: 8B read + 4B write = 12B
+# - fma
+# 2x 4B + 4B -> 4B 
+# total: 16B read + 8B write = 24B
+
+op_memory = {
+    "add": 12*num_floats,
+    "mult": 12*num_floats,
+    "fma": 24*num_floats
+}
+
+# 4 arrays of D*D * 4 bytes (32bit) * 2 access
+mem_GB = op_memory[op_type]/(1e9)
 
 print("")
-# FYI probably not very accurate lol
-print("Est. Memory:", round(mem,1), "GB")
+
+print("Est. Memory:", round(mem_GB,1), "GB")
 print("      FLOPs:", flops)
 print("")
 
@@ -26,36 +52,43 @@ with tf.device("/GPU:0"):
     
 @tf.function(experimental_autograph_options=tf.autograph.experimental.Feature.ALL)
 def run_fma(a, b, c):
-    print("Tracing")
+    print("Tracing run_fma(a, b, c)")
     return a*b+c
 
-iterations = 1000
-
+C = run_fma(a, b, c)
 C = run_fma(a, b, c)
 C.numpy()
 
-print("Confirm your system is NOT going to swap before continue")
-print("I don't this will be healthy for any SSD")
-input("Press Enter to continue...")
+# measure overhead
+st = time.time()
+for i in range(30):
+    for j in range(1):
+        C = run_fma(a, b, c)
+    C.numpy()
+et = time.time()
+overhead = (et-st)/30
 
+print("Overhead:", overhead)
+print(" ")
+print("Confirm your system is NOT going to swap before continue")
+print(" ")
+input("Press Enter to continue...")
 print("Start benchmark")
+
+iterations = 1000
 
 try:
     while True:
         st = time.time()
-        for i in range(iterations):
+        for i in range(iterations+1):
             C = run_fma(a, b, c)
         C.numpy()
         et = time.time()
-        print(C.shape)
-        duration = et-st
+        duration = et-st-overhead
         fps = iterations/duration
-        tflops = fps*flops/(1e9)
-        print("it/sec:", round(fps,1), "GFLOPS:", round(tflops,1))
+        gflops = fps*flops/(1e9)
+        bw = fps*mem_GB
+        print("it/sec:", round(fps,1), "GFLOPS:", round(gflops,1), "est BW:", round(bw,1), "GB/s")
 except KeyboardInterrupt:
     pass
 
-
-
-
-    
