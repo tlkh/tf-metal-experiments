@@ -42,10 +42,10 @@ Power draw also doesn't seem to be able to go much higher than ~40W:
 The benchmark scripts used are included in this repo.
 
 ```shell
-python3 bm_rn50.py
-python3 bm_mnv2.py
-python3 bm_distilbert.py
-python3 bm_bertlarge.py
+python train_benchmark.py --type cnn --model resnet50
+python train_benchmark.py --type cnn --model mobilenetv2
+python train_benchmark.py --type transformer --model distilbert-base-uncased
+python train_benchmark.py --type transformer --model bert-large-uncased --bs 16
 ```
 
 **Reference Benchmarks from RTX 3090**
@@ -70,17 +70,16 @@ Note: 3090 running at 400W power limit. CPU is 5600X.
 ```shell
 # config for NVIDIA Tensor Core GPU
 # run with more steps, XLA and FP16 (enable tensor core aka mixed precision)
-python3 bm_rn50.py --xla --fp16 --steps 100
-python3 bm_mnv2.py --xla --fp16 --steps 100
-python3 bm_distilbert.py --xla --fp16 --steps 100
-python3 bm_bertlarge.py --xla --fp16 --steps 30
-
+python train_benchmark.py --type cnn --model resnet50 --xla --fp16 --steps 100
+python train_benchmark.py --type cnn --model mobilenetv2 --xla --fp16 --steps 100
+python train_benchmark.py --type transformer --model distilbert-base-uncased --xla --fp16 --steps 100
+python train_benchmark.py --type transformer --model bert-large-uncased --bs 16 --xla --fp16 --steps 30
 # If no Tensor Core, remove --fp16 flag
 ```
 
 ## Measuring Achievable TFLOPS
 
-We can use TF to write a matrix multiplication benchmark to try and estimate what is the max compute performance we can get out of a M1 Max. It seems we can get around ~8 TFLOPS for large enough problem (GEMM) sizes.
+We can use TF to write a matrix multiplication benchmark to try and estimate what is the max compute performance we can get out of a M1 Max. It seems we can get around >8 TFLOPS for large enough problem sizes.
 
 ![](gpu_tflops_plot.jpg)
 

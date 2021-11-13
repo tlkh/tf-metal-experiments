@@ -1,9 +1,7 @@
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("--iterations", default=100, type=int,
+parser.add_argument("--iterations", default=5, type=int,
                     help="Number of iterations to run within each benchmark")
-parser.add_argument("--time", default=10, type=int,
-                    help="Min time to continuously run the stress test")
 args = parser.parse_args()
 
 import os
@@ -11,32 +9,37 @@ import time
 from tqdm import tqdm
 import tensorflow as tf
 
-@tf.function()
-def do_op(a, b):
-    return tf.linalg.matmul(a, b)
+@tf.function(experimental_autograph_options=tf.autograph.experimental.Feature.ALL)
+def do_op(a, b, num_matmul=10):
+    print("Tracing")
+    x = tf.linalg.matmul(a, b)
+    for _ in range(num_matmul-1):
+        x = tf.linalg.matmul(a, x)
+    return x
 
-def benchmark_matmul(M, dtype=tf.float32, iterations=100):
-    # generate data and warm-up iteration
+def benchmark_matmul(M, dtype=tf.float32, num_matmul=100, iterations=1):
+    # generate data
     with tf.device("/GPU:0"):
         A = tf.random.normal([M, M], mean=0, stddev=1, dtype=dtype)
         B = tf.random.normal([M, M], mean=0, stddev=1, dtype=dtype)
-        C = do_op(A, B)
+    # warm-up iteration
+    C = do_op(A, B, num_matmul=num_matmul)
+    C.numpy()
+    C = do_op(A, B, num_matmul=num_matmul)
     C.numpy()
     time.sleep(1)
     # run benchmark
     st = time.time()
-    with tf.device("/GPU:0"):
-        for _ in range(iterations+1):
-            C = do_op(A, B)
+    for _ in range(iterations):
+        C = do_op(A, B, num_matmul=num_matmul)
     C.numpy()
     et = time.time()
-    duration = (et-st)
-    return iterations/duration
+    duration = et-st
+    return num_matmul*iterations/duration
 
-fp16_matmul, fp32_matmul, fp64_matmul = [], [], []
-fp16_tflops, fp32_tflops, fp64_tflops = [], [], []
+fp32_tflops = []
 
-M_list = [32, 64, 128, 256, 512, 1024, 1536, 2048, 4096, 6144, 8192][::-1]
+M_list = [32, 64, 128, 256, 512, 1024, 1536, 2048, 4096, 6144, 8192]
 
 print("\nStarting burn...\n")
 
@@ -44,12 +47,10 @@ burn_start = time.time()
 
 for M in tqdm(M_list):
     print("FP32", M, end=" : ")
-    ret = benchmark_matmul(M, dtype=tf.float32, iterations=args.iterations)
-    tflops = ret * 2 * M**3 / 1e12
-    fp32_matmul.append(ret)
+    fps = benchmark_matmul(M, dtype=tf.float32, iterations=args.iterations)
+    tflops = fps * 2 * M**3 / 1e12
     fp32_tflops.append(tflops)
     print(tflops)
-    time.sleep(1)
     
 burn_end = time.time()
     
