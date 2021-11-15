@@ -9,13 +9,15 @@ import time
 from tqdm import tqdm
 import tensorflow as tf
 
+tf.config.set_visible_devices([], 'GPU')
+
 @tf.function(experimental_autograph_options=tf.autograph.experimental.Feature.ALL)
 def do_op(a, b):
     return tf.linalg.matmul(a, b)
 
 def benchmark_matmul(M, dtype=tf.float32, iterations=30):
     # generate data and warm-up iteration
-    with tf.device("/GPU:0"):
+    with tf.device("/CPU:0"):
         A = tf.random.normal([M, M], mean=0, stddev=1, dtype=dtype)
         B = tf.random.normal([M, M], mean=0, stddev=1, dtype=dtype)
     C = do_op(A, B)

@@ -53,10 +53,12 @@ print(model.inputs)
 print("Converting model")
 
 mlmodel = ct.convert(model,
+                     convert_to="mlprogram",
                      inputs=[ct.TensorType(shape=(batch_size,HW_og,HW_og,3))],
+                     compute_precision=ct.precision.FLOAT16,
                      compute_units=ct.ComputeUnit.ALL)
 
-mlmodel = quantization_utils.quantize_weights(mlmodel, 16)
+#mlmodel = quantization_utils.quantize_weights(mlmodel, 16)
                              
 print("Testing model")
 

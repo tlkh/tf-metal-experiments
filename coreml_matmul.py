@@ -4,8 +4,8 @@ import coremltools as ct
 from coremltools.models.neural_network import quantization_utils
 import tensorflow as tf
 
-num_matmul = 10
-D = 1024*4
+num_matmul = 20
+D = 1024*2
 
 class MatMul(tf.keras.layers.Layer):
     def __init__(self, units):

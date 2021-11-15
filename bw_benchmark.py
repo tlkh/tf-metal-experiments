@@ -4,10 +4,12 @@ parser.add_argument("--iterations", default=100, type=int,
                     help="Number of iterations to run within each benchmark")
 parser.add_argument("--device1", default="/GPU:0", type=str)
 parser.add_argument("--device2", default="/GPU:0", type=str)
+parser.add_argument("--op", default="add", type=str)
 args = parser.parse_args()
 
 import time
 import tensorflow as tf
+#tf.debugging.set_log_device_placement(True)
 
 #tf.config.set_visible_devices([], 'GPU')
 
@@ -15,6 +17,7 @@ import tensorflow as tf
 # always set it as a integer multiple to avoid tile/wave quantization effect
 D = 8192
 
+#op_type = "mult-add"
 op_type = "mult-add"
 
 input_shape = (D,D,)
@@ -63,21 +66,33 @@ def run_mult_add(a, b, c):
     x = a*b+c
     return x
 
-with tf.device(args.device2):
-    C = run_mult_add(a, b, c)
+@tf.function(experimental_autograph_options=tf.autograph.experimental.Feature.ALL)
+def run_add(a, b, c):
+    print("Tracing run_add")
+    x = a+b
+    return x
 
-    print("\nStarting device:", a.device)
-    print("Ending device:", C.device)
+if op_type == "add":
+    op = run_add
+elif op_type == "mult-add":
+    op = run_mult_add
+
+with tf.device(args.device2):
+    
+    C = op(a, b, c)
+
+    print("\nStarting device:", a.device, a.dtype)
+    print("Ending device:", C.device, C.dtype)
 
     C.numpy()
-    C = run_mult_add(a, b, c)
+    C = op(a, b, c)
     C.numpy()
 
     # measure overhead
     st = time.time()
     for i in range(30):
         for j in range(1):
-            C = run_mult_add(a, b, c)
+            C = op(a, b, c)
         C.numpy()
     et = time.time()
     overhead = (et-st)/30
@@ -89,7 +104,7 @@ with tf.device(args.device2):
         while True:
             st = time.time()
             for i in range(args.iterations):
-                C = run_mult_add(a, b, c)
+                C = op(a, b, c)
             C.numpy()
             et = time.time()
             duration = et-st-overhead
