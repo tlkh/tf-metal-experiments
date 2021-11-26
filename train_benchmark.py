@@ -18,8 +18,7 @@ parser.add_argument("--xla", action="store_true")
 parser.add_argument("--fp16", action="store_true")
 args = parser.parse_args()
 
-def train():
-    """@wandbcode{tf-metal-experiments}""" 
+def train(): 
     with wandb.init(project=PROJECT, entity=ENTITY, config=args.__dict__):
         tf.config.optimizer.set_jit(args.xla)
         if args.fp16:
