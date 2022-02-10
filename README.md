@@ -21,6 +21,8 @@ If you want to play around with Transformer models (with TF Metal backend of cou
 
 ## Experiments and Benchmarks
 
+**Benchmarks from M1 Max**
+
 After some trial and error, some initial benchmarks for what should be the approx best capability of the M1 Max.
 
 * For all the cases here, increasing batch size does not seem to increase the throughput.
@@ -47,6 +49,22 @@ python train_benchmark.py --type cnn --model mobilenetv2
 python train_benchmark.py --type transformer --model distilbert-base-uncased
 python train_benchmark.py --type transformer --model bert-large-uncased --bs 16
 ```
+
+**Benchmarks from M1 Pro (16 Core GPU)**
+
+Same tests as above were conducted. Additionally, some lower batch sizes were used to see the difference in throughput.
+* Device restarted + plugged into charger (again, does not seem to affect the benchmarks).
+* Power draw measured for whole SoC and only GPU separately using `asitop` (see: [tlkh/asitop](https://github.com/tlkh/asitop)).
+* Memory is the Python process' peak memory usage as observed via Activity Monitor.
+
+| Model       | GPU        | BatchSize | Throughput  | Peak Power | Peak Power GPU | Memory |
+| ----------- | ---------- | --------- | ----------- | ----- | ----- | ------ |
+| ResNet50    | M1 Pro 16c | 128       | 55.8 img/sec  | 36.08W | 20.90W | 15.55 GB |
+| ResNet50    | M1 Pro 16c | 64        | 72.8 img/sec  | 32.80W | 20.48W | 11.30 GB |
+| MobileNetV2 | M1 Pro 16c | 128       | 174.7 img/sec | 31.68W | 17.49W | 10.88 GB |
+| MobileNetV2 | M1 Pro 16c | 64        | 181.5 img/sec | 29.37W | 17.50W | 10.27 GB |
+| DistilBERT  | M1 Pro 16c | 64        | 65.9 seq/sec  | 32.12W | 18.41W | 7.92 GB  |
+| BERTLarge   | M1 Pro 16c | 16        | 6.7 seq/sec   | 31.75W | 17.75W | 13.62 GB |
 
 **Reference Benchmarks from RTX 3090**
 
